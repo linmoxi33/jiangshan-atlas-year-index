@@ -22,6 +22,20 @@ def snap(path, caption, features=None):
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, ensure_ascii=False)
 
+    def test_point_year_after_label(self):
+        # regression: anchored point regex missed single years written after a label
+        self.assertEqual(ayi.parse_year_range("明 · 1407 年 · 永乐极盛"), (1407, 1407))
+
+    def test_point_year_bce_after_label(self):
+        self.assertEqual(ayi.parse_year_range("秦 · 公元前 221 年"), (-221, -221))
+
+    def test_point_year_rejects_reign_count(self):
+        # "61 年" is a reign-year count, not a calendar year
+        self.assertIsNone(ayi.parse_year_range("康熙 61 年"))
+
+    def test_point_year_inside_sentence(self):
+        self.assertEqual(ayi.parse_year_range("中华人民共和国 1949 年成立"), (1949, 1949))
+
 
 class ParseTests(unittest.TestCase):
     def test_plain_range(self):
@@ -155,6 +169,23 @@ class CliTests(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
         self.assertEqual(data["summary"]["findings"], 0)
+
+    def test_reversed_range_not_counted_as_coverage(self):
+        # a reversed range must not create a phantom gap or inflate the span
+        snap(os.path.join(self.tmp, "qin", "s_qin_a.geojson"), "前300 — 前200")
+        snap(os.path.join(self.tmp, "qin", "s_qin_b.geojson"), "前100 — 前90")
+        snap(os.path.join(self.tmp, "qin", "s_qin_bad.geojson"), "前50 — 前80")
+        p = self.run_cli(self.tmp, "--json")
+        data = json.loads(p.stdout)
+        codes = [f["code"] for f in data["findings"]]
+        self.assertIn("year-reversed", codes)
+        gaps = [f for f in data["findings"] if f["code"] == "group-gap"]
+        # only the real hole between -200 and -100 counts; the reversed entry
+        # must not shorten it to 9 years or extend the group span
+        self.assertEqual(len(gaps), 1)
+        self.assertIn("99 uncovered", gaps[0]["detail"])
+        self.assertEqual(data["summary"]["parsed"], 2)
+        self.assertEqual(data["groups"]["qin"]["span"], [-300, -90])
 
     def test_exit_one_on_findings(self):
         snap(os.path.join(self.tmp, "qin", "s_qin_c.geojson"), "前100 — 前90")

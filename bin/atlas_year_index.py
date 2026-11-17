@@ -16,7 +16,7 @@ import re
 import sys
 
 TOOL = "jiangshan-atlas-year-index"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 UL = "\u2014"  # em dash
 SEP = "[%s\u2013\\-~至到]" % UL
@@ -24,6 +24,13 @@ BCE = r"(?:公元前|前|BC\s*|BCE\s*)"
 CE = r"(?:公元|AD\s*|CE\s*)"
 NUM = r"(\d{1,4})"
 POINT_RE = re.compile(r"^\s*(?P<b>%s|%s)?\s*(?P<n>\d{1,4})\s*(?:年)?\s*(?:·|$)" % (BCE, CE))
+# Single years are frequently written after a label ("明 · 1407 年"), so the
+# anchored form above misses them.  The loose form requires an explicit 年 and
+# a 3-4 digit year, which keeps reign-year counts (2 digits) and section
+# numbers out of the result.
+POINT_ANY_RE = re.compile(
+    r"(?P<b>%(bce)s|%(ce)s)?\s*(?P<n>\d{3,4})\s*年" % {"bce": BCE, "ce": CE}
+)
 RANGE_RE = re.compile(
     r"(?P<b1>%(bce)s|%(ce)s)?\s*(?P<n1>%(num)s)\s*(?:年)?\s*%(sep)s\s*(?:年)?\s*"
     r"(?P<b2>%(bce)s|%(ce)s)?\s*(?P<n2>%(num)s)\s*(?:年)?"
@@ -56,11 +63,16 @@ def parse_year_range(caption):
     text = _clean(caption)
     m = RANGE_RE.search(text)
     if not m:
-        p = POINT_RE.match(text)
+        p = POINT_RE.match(text) or POINT_ANY_RE.search(text)
         if not p or int(p.group("n")) == 0:
             return None
         y = int(p.group("n"))
-        return (-y, -y) if p.group("b") and re.match(BCE, p.group("b")) else (y, y)
+        neg = bool(p.group("b") and re.match(BCE, p.group("b")))
+        if not neg:
+            # "公元前" may sit before the label that precedes the year.
+            head = text[: p.start("n")]
+            neg = bool(re.search(BCE, head[-8:]))
+        return (-y, -y) if neg else (y, y)
     a, b = int(m.group("n1")), int(m.group("n2"))
     a_bce = bool(m.group("b1") and re.match(BCE, m.group("b1")))
     b_raw = m.group("b2") or ""
@@ -155,8 +167,8 @@ def group_findings(entries):
     findings = []
     groups = {}
     for e in entries:
-        if e["start"] is None:
-            continue
+        if e["start"] is None or e["start"] > e["end"]:
+            continue  # reversed ranges are already reported by scan()
         groups.setdefault(e["group"], []).append(e)
     timeline = {}
     for group, items in sorted(groups.items()):
