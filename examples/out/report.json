@@ -1,0 +1,117 @@
+{
+  "tool": "jiangshan-atlas-year-index",
+  "version": "1.0.0",
+  "atlas_dir": "examples/in",
+  "summary": {
+    "snapshots": 6,
+    "parsed": 6,
+    "unparsed": 0,
+    "groups": 3,
+    "findings": 2,
+    "first_year": -221,
+    "last_year": 1433,
+    "contested_years": 0
+  },
+  "groups": {
+    "ming": {
+      "snapshots": 2,
+      "span": [
+        1368,
+        1433
+      ],
+      "span_years": 66,
+      "covered_years": 60,
+      "uncovered_years": 6
+    },
+    "qin": {
+      "snapshots": 2,
+      "span": [
+        -221,
+        -202
+      ],
+      "span_years": 20,
+      "covered_years": 20,
+      "uncovered_years": 0
+    },
+    "tang": {
+      "snapshots": 2,
+      "span": [
+        618,
+        750
+      ],
+      "span_years": 133,
+      "covered_years": 133,
+      "uncovered_years": 0
+    }
+  },
+  "snapshots": [
+    {
+      "key": "s_qin_a",
+      "group": "qin",
+      "file": "qin/s_qin_a.geojson",
+      "caption": "前221 — 前207 · 秦灭六国",
+      "start": -221,
+      "end": -207,
+      "order": 0
+    },
+    {
+      "key": "s_qin_b",
+      "group": "qin",
+      "file": "qin/s_qin_b.geojson",
+      "caption": "前206 — 前202 · 楚汉相争",
+      "start": -206,
+      "end": -202,
+      "order": 1
+    },
+    {
+      "key": "s_tang_a",
+      "group": "tang",
+      "file": "tang/s_tang_a.geojson",
+      "caption": "618 — 700 · 唐初",
+      "start": 618,
+      "end": 700,
+      "order": 4
+    },
+    {
+      "key": "s_tang_b",
+      "group": "tang",
+      "file": "tang/s_tang_b.geojson",
+      "caption": "690 — 750 · 武周",
+      "start": 690,
+      "end": 750,
+      "order": 5
+    },
+    {
+      "key": "s_ming_a",
+      "group": "ming",
+      "file": "ming/s_ming_a.geojson",
+      "caption": "1368 — 1398 · 洪武",
+      "start": 1368,
+      "end": 1398,
+      "order": 2
+    },
+    {
+      "key": "s_ming_b",
+      "group": "ming",
+      "file": "ming/s_ming_b.geojson",
+      "caption": "1405 — 1433 · 郑和下西洋",
+      "start": 1405,
+      "end": 1433,
+      "order": 3
+    }
+  ],
+  "findings": [
+    {
+      "code": "group-gap",
+      "severity": "warning",
+      "file": "ming/s_ming_b.geojson",
+      "detail": "6 uncovered year(s) between s_ming_a (ends 1398) and s_ming_b (starts 1405)"
+    },
+    {
+      "code": "group-overlap",
+      "severity": "warning",
+      "file": "tang/s_tang_b.geojson",
+      "detail": "s_tang_b [690..750] overlaps s_tang_a [618..700]"
+    }
+  ]
+}

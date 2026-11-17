@@ -1,0 +1,12 @@
+jiangshan-atlas-year-index 1.0.0
+atlas: examples/in
+snapshots: 6 parsed / 6 total, groups: 3, findings: 2
+timeline span: 221 BCE .. 1433 CE, contested years: 0
+  ming      2 snapshots  1368 CE..1433 CE  uncovered 6/66 years
+  qin       2 snapshots  221 BCE..202 BCE  uncovered 0/20 years
+  tang      2 snapshots  618 CE..750 CE  uncovered 0/133 years
+findings:
+  [warning] group-gap: ming/s_ming_b.geojson
+      6 uncovered year(s) between s_ming_a (ends 1398) and s_ming_b (starts 1405)
+  [warning] group-overlap: tang/s_tang_b.geojson
+      s_tang_b [690..750] overlaps s_tang_a [618..700]
